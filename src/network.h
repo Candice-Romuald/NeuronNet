@@ -104,5 +104,11 @@ public:
 private:
     std::vector<Neuron> neurons;
     linkmap links;
+/*!
+ * Performs the sum of all links intensity of a certain class of neurons (Inhibitory or not) to the neuron n
+ * /param Isinhib: specify the class of neuron it will sum intensities
+ * /param fire_list: liste des indices des neurons (dans attribut neurons) qui fire au pas de simulation actuelle
+*/
+	double link_intensity (const size_t& n, bool IsInhib, const std::set<size_t>& fire_list) const;
 
 };

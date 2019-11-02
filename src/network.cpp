@@ -128,3 +128,87 @@ void Network::print_traj(const int time, const std::map<std::string, size_t> &_n
             }
     (*_out) << std::endl;
 }
+
+std::set<size_t> Network::step(const std::vector<double>& h){
+	//trouver les voisins qui fire
+	std::set<size_t> fire_indice;
+	for (size_t i(0); i<neurons.size(); ++i) {
+		if (neurons[i].firing()){
+			 fire_indice.insert (i);
+			 neurons[i].reset();
+		 } else {
+			 
+				double w(1);
+				if (neurons[i].is_inhibitory()) w = 0.4;	
+		
+				//code 1 ou 2 marche:
+				//1)
+				double sum(0);
+				for (auto voisin: neighbors(i)){
+					if (fire_indice.count(voisin.first) == 1){ 
+						if(neurons[voisin.first].is_inhibitory()) sum += voisin.second;
+						else sum += 0.5*voisin.second;
+					}
+				}
+				neurons[i].input(w*h[i] + sum);
+				neurons[i].step();
+				
+				//2)
+				/* 
+				neurons[i].input(w*h[i]+ 0.5*link_intensity(i,false,fire_indice)
+				+link_intensity(i,true, fire_indice)); 
+				neurons[i].step();
+				*/
+		}
+	}
+	return fire_indice;
+}
+
+double Network::link_intensity (const size_t& n, bool Isinhib, const std::set<size_t>& fire_list) const{
+	std::vector<std::pair<size_t, double> > neurs (neighbors (n));
+	double sum(0.);
+	for (size_t i(0); i<neurs.size(); ++i){
+		if(fire_list.count(neurs[i].first) == 1 and neurons[neurs[i].first].is_inhibitory() == Isinhib) {
+			sum += neurs[i].second;
+		}
+	}
+	return sum;
+}
+
+
+std::pair<size_t, double> Network::degree(const size_t& n) const{
+	double sum_intensity (0.);
+	std::vector<std::pair<size_t, double> > voisin (neighbors(n));
+	for (auto lien: voisin){
+			sum_intensity += lien.second;
+	}
+	return std::pair<size_t, double> (voisin.size(), sum_intensity);
+}
+
+
+
+std::vector<std::pair<size_t, double> > Network::neighbors(const size_t& n) const{
+	std::vector<std::pair<size_t, double> > connex_to_n;
+	/*
+	for (auto lien: links){
+		if (lien.first.first == n){
+			connex_to_n.push_back(std::pair<size_t, double> (lien.first.second,
+			lien.second));
+		}
+	}
+	*/
+	for (std::map<std::pair<size_t, size_t>, double>::const_iterator i=links.lower_bound({n,0})
+	; i!=links.end() and ((i->first).first ==n) ; ++i) {
+		connex_to_n.push_back(std::pair<size_t, double> (i->first.second, i->second));
+	}	
+	return connex_to_n;
+}
+
+
+
+
+
+
+
+
+
