@@ -137,7 +137,6 @@ std::set<size_t> Network::step(const std::vector<double>& h){
 			 fire_indice.insert (i);
 			 neurons[i].reset();
 		 } else {
-			 
 				double w(1);
 				if (neurons[i].is_inhibitory()) w = 0.4;	
 		
@@ -146,8 +145,9 @@ std::set<size_t> Network::step(const std::vector<double>& h){
 				double sum(0);
 				for (auto voisin: neighbors(i)){
 					if (fire_indice.count(voisin.first) == 1){ 
-						if(neurons[voisin.first].is_inhibitory()) sum += voisin.second;
-						else sum += 0.5*voisin.second;
+						if(neurons[voisin.first].is_inhibitory()) {
+							sum += voisin.second;
+						} else  {sum += 0.5*voisin.second;}
 					}
 				}
 				neurons[i].input(w*h[i] + sum);
